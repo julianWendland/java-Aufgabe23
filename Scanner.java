@@ -9,21 +9,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.io.UncheckedIOException;
 
 public class Scanner {
-
-    static {
-        System.err.println("Please call injectClass(\"aufgabe_23.Scanner\"), you've imported a skeleton");
-    }
 
     private Reader reader;
     private Token nextToken;
     private Object nextValue;
 
     public Scanner(InputStream arg02) {
-        this.reader = new InputStreamReader(arg02);
+       this(new InputStreamReader(arg02));
 
     }
 
@@ -32,11 +27,15 @@ public class Scanner {
         this.reader = new BufferedReader(arg02);
         this.nextToken = null;
         this.nextValue = null;
-
+        try {
+            reader.mark(1);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private int getChar() throws IOException {
-        return this.reader.read();
+        return readChar(false);
     }
 
     Object getValue() {
@@ -45,7 +44,7 @@ public class Scanner {
 
     }
 
-    void scanToken() {
+   void scanToken() {
         // Roughly 44 lines of implementation
         try {
             int nextchar = getChar();
@@ -55,91 +54,119 @@ public class Scanner {
             
             switch (nextchar) {
                 case -1:
-                    this.nextToken = null;
-                    this.nextValue = null;
+                    this.nextToken=null;
+                    this.nextValue=null;
                     return;
                 case '+':
                     this.nextToken = Token.PLUS;
-                    return;
+                   return;
+                    
                 case '-':
-                    this.nextToken = Token.MINUS;
-                    return;
+                    this.nextToken =Token.MINUS;
+                   return;
+                    
                 case '/':
                     this.nextToken = Token.SLASH;
-                    return;
+                   return;
+                    
                 case '*':
                     this.nextToken = Token.STAR;
-                    return;
+                    return ;
+                    
                 case '(':
-                    this.nextToken = Token.OPEN;
-                    return;
+                     this.nextToken = Token.OPEN;
+                   return;
+                    
                 case ')':
-                    this.nextToken = Token.CLOSE;
-                    return;
+                     this.nextToken = Token.CLOSE;
+                   return;
+                    
                 case ';':
-                    this.nextToken = Token.END;
+                     this.nextToken = Token.END;
                     return;
-             
-
-                default:
+                    
+            }
+               
             if (Character.isDigit(nextchar)) {
                 StringBuilder number = new StringBuilder();
                 number.append((char) nextchar);
 
-                while (Character.isDigit(nextchar = peekChar())) {
+                while (Character.isDigit(peekChar())) {
+                    nextchar =getChar();
                     number.append((char) nextchar);
-                    getChar();
+                    
+                    
                     
                 }
-                if ((nextchar = peekChar()) == '.') {
-                    getChar();
+                if (( peekChar()) == '.') {
+                   nextchar = getChar();
                     number.append((char) nextchar);
 
-                    while (Character.isDigit(nextchar = peekChar())) {
-                        getChar();
+                    while (Character.isDigit( peekChar())) {
+                       nextchar = getChar();
                         number.append((char) nextchar);
                     }
                     
                 }
 
-                if ((nextchar = peekChar()) == 'E' || (nextchar=peekChar())=='e') {
-                    getChar();
+                if (peekChar() == 'e' || peekChar() == 'E') {
+                    // read e
+                     nextchar = getChar();
+                    // Add e
                     number.append((char) nextchar);
-                    if ((nextchar = peekChar()) == '-') {
-                        getChar();
+
+                    if (peekChar() == '-') {
+                        // read minus
+                        nextchar = getChar();
                         number.append((char) nextchar);
                     }
-                    if (!Character.isDigit(nextchar = peekChar())) {
+
+                   
+
+                   
+                    // read all numbers after 'e'
+                    while (Character.isDigit( peekChar())  ) {
+                        
+                        
+                        // read current number
+                        nextchar = getChar();
+                    
+
+                        // if not end of input
+                      
+                            // add current char
+                            number.append((char) nextchar);
+                        
+                    }
+                    if (!Character.isDigit(nextchar) || peekChar() == '.' || peekChar() == 'e' || peekChar() == 'E') {
                         throw new IllegalArgumentException("Illegal float number");
                     }
-
-                    while (Character.isDigit(nextchar = peekChar())) {
-                        getChar();
-                        number.append((char) nextchar);
-                    }
-                    
                     
 
                 } 
 
-                this.nextValue = Float.valueOf(number.toString());
-                this.nextToken = Token.NUMBER;
+               this.nextValue = Float.valueOf(number.toString());
+               this.nextToken = Token.NUMBER;
                 return;
+                 
+                 
+                
             } else{
                   throw new IllegalArgumentException("Illegal input character \"=\"");
             }
             
-            }
+            
           
         } catch (IOException e) {
-            Logger.getLogger(Scanner.class.getName()).log(Level.SEVERE, null, e);
+           throw new UncheckedIOException(e);
         }
 
     }
 
+
     Token getToken() {
         // Roughly 2 lines of implementation
-      
+
         Token token = peekToken();
         nextToken = null;
         return token;
@@ -151,7 +178,7 @@ public class Scanner {
         if (nextToken == null) {
             scanToken();
         }
-        return this.nextToken;
+        return nextToken;
 
     }
 
@@ -162,22 +189,15 @@ public class Scanner {
     }
 
     private int peekChar() throws IOException {
-        int ch;
-        reader.mark(1);
-        ch = reader.read();
-        reader.reset();
-        return ch;
+        return readChar(true);
     }
 
-    int readChar(boolean reset) throws IOException {
-        if (reset) {
-            reader.mark(1);
-        }
+     int readChar(boolean reset) throws IOException {      
+        reader.mark(1);
         int r = reader.read();
-        if (reset) {
-            reader.mark(1);
-        }
+         if (reset) {
+            reader.reset();
+        }                           
         return r;
     }
-
 }
