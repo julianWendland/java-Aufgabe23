@@ -49,6 +49,10 @@ public class Scanner {
         // Roughly 44 lines of implementation
         try {
             int nextchar = getChar();
+            while(Character.isWhitespace(nextchar)){
+                nextchar =getChar();
+            }
+            
             switch (nextchar) {
                 case -1:
                     this.nextToken = null;
@@ -75,12 +79,9 @@ public class Scanner {
                 case ';':
                     this.nextToken = Token.END;
                     return;
-                case ' ':
+             
 
-                    scanToken();
-                    return;
-
-            }
+                default:
             if (Character.isDigit(nextchar)) {
                 StringBuilder number = new StringBuilder();
                 number.append((char) nextchar);
@@ -127,7 +128,8 @@ public class Scanner {
             } else{
                   throw new IllegalArgumentException("Illegal input character \"=\"");
             }
-
+            
+            }
           
         } catch (IOException e) {
             Logger.getLogger(Scanner.class.getName()).log(Level.SEVERE, null, e);
@@ -137,11 +139,9 @@ public class Scanner {
 
     Token getToken() {
         // Roughly 2 lines of implementation
-        if (this.nextToken == null) {
-            this.scanToken();
-        }
+      
         Token token = peekToken();
-        this.nextToken = null;
+        nextToken = null;
         return token;
 
     }
@@ -149,7 +149,7 @@ public class Scanner {
     Token peekToken() {
         // Roughly 1 lines of implementation
         if (nextToken == null) {
-            this.scanToken();
+            scanToken();
         }
         return this.nextToken;
 
@@ -163,9 +163,9 @@ public class Scanner {
 
     private int peekChar() throws IOException {
         int ch;
-        this.reader.mark(1);
-        ch = this.reader.read();
-        this.reader.reset();
+        reader.mark(1);
+        ch = reader.read();
+        reader.reset();
         return ch;
     }
 
